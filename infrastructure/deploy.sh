@@ -1,14 +1,25 @@
 #!/bin/bash
 
-# AWS SAM deployment script for authentication app
+# AWS CDK deployment script for authentication app
 
 set -e
 
-echo "🚀 Deploying Authentication App Infrastructure..."
+echo "🚀 Deploying Authentication App Infrastructure with CDK..."
 
 # Check if AWS CLI is configured
 if ! aws sts get-caller-identity > /dev/null 2>&1; then
     echo "❌ AWS CLI not configured. Please run 'aws configure' first."
+    exit 1
+fi
+
+# Check if Node.js and npm are available
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js not found. Please install Node.js 18+ first."
+    exit 1
+fi
+
+if ! command -v npm &> /dev/null; then
+    echo "❌ npm not found. Please install npm first."
     exit 1
 fi
 
@@ -22,37 +33,41 @@ echo "🔐 JWT Secret: [HIDDEN]"
 # Navigate to infrastructure directory
 cd "$(dirname "$0")"
 
-# Copy template to backend directory for SAM
-cp template.yaml ../backend/
+# Install dependencies if node_modules doesn't exist
+if [ ! -d "node_modules" ]; then
+    echo "📦 Installing CDK dependencies..."
+    npm install
+fi
+# Build TypeScript
+echo "🔨 Building TypeScript..."
+npm run build
 
-# Navigate to backend directory
-cd ../backend
-
-# Build the application
-echo "🔨 Building Lambda functions..."
-sam build --template template.yaml
+# Bootstrap CDK if needed (only run once per account/region)
+echo "🏗️  Checking CDK bootstrap..."
+if ! aws cloudformation describe-stacks --stack-name CDKToolkit --region ${AWS_DEFAULT_REGION:-us-east-1} >/dev/null 2>&1; then
+    echo "🏗️  Bootstrapping CDK..."
+    npx cdk bootstrap
+fi
 
 # Deploy the stack
-echo "🚀 Deploying to AWS..."
-sam deploy \
-    --template template.yaml \
-    --stack-name "auth-app-$ENVIRONMENT" \
-    --capabilities CAPABILITY_IAM \
-    --parameter-overrides \
-        Environment="$ENVIRONMENT" \
-        JWTSecret="$JWT_SECRET" \
-    --confirm-changeset
+echo "🚀 Deploying CDK stack..."
+npx cdk deploy \
+    --require-approval never \
+    --context environment="$ENVIRONMENT" \
+    --context jwtSecret="$JWT_SECRET" \
+    --outputs-file outputs.json
 
-# Get the API endpoint
-API_ENDPOINT=$(aws cloudformation describe-stacks \
-    --stack-name "auth-app-$ENVIRONMENT" \
-    --query 'Stacks[0].Outputs[?OutputKey==`ApiGatewayEndpoint`].OutputValue' \
-    --output text)
-
-echo "✅ Deployment completed successfully!"
-echo "🌐 API Endpoint: $API_ENDPOINT"
-echo "📋 Test your API:"
-echo "   curl -X POST $API_ENDPOINT/auth/signup -H 'Content-Type: application/json' -d '{\"email\":\"test@example.com\",\"password\":\"password123\",\"firstName\":\"John\",\"lastName\":\"Doe\"}'"
-
-# Clean up
-rm -f template.yaml
+# Get the API endpoint from outputs
+if [ -f "outputs.json" ]; then
+    API_ENDPOINT=$(cat outputs.json | grep -o '"ApiGatewayEndpoint":"[^"]*"' | cut -d'"' -f4)
+    
+    echo "✅ Deployment completed successfully!"
+    echo "🌐 API Endpoint: $API_ENDPOINT"
+    echo "📋 Test your API:"
+    echo "   curl -X POST $API_ENDPOINT/api/auth/signup -H 'Content-Type: application/json' -d '{\"email\":\"test@example.com\",\"password\":\"password123\",\"firstName\":\"John\",\"lastName\":\"Doe\"}'"
+    
+    # Clean up outputs file
+    rm -f outputs.json
+else
+    echo "⚠️  Could not retrieve API endpoint. Check CDK outputs manually."
+fi
