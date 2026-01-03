@@ -68,7 +68,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref ApiGateway
-            Path: /auth/signup
+            Path: /api/auth/signup
             Method: POST
       Policies:
         - DynamoDBCrudPolicy:
@@ -84,8 +84,37 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref ApiGateway
-            Path: /auth/signin
+            Path: /api/auth/signin
             Method: POST
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
+
+  SignOutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: auth/
+      Handler: signout
+      Events:
+        SignOut:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /api/auth/signout
+            Method: POST
+
+  MeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: auth/
+      Handler: me
+      Events:
+        Me:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /api/me
+            Method: GET
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UsersTable
