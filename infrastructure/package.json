@@ -5,13 +5,15 @@
   "main": "dist/lib/index.js",
   "scripts": {
     "build": "tsc",
+    "build-lambdas": "./build-lambdas.sh",
+    "build-all": "npm run build-lambdas && npm run build",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "deploy": "npm run build && cdk deploy",
+    "deploy": "npm run build-all && cdk deploy",
     "destroy": "npm run build && cdk destroy",
     "diff": "npm run build && cdk diff",
-    "synth": "npm run build && cdk synth",
+    "synth": "npm run build-all && cdk synth",
     "clean": "rm -rf dist/ cdk.out/"
   },
   "devDependencies": {

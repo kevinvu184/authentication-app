@@ -1,9 +1,9 @@
-import * as cdk from 'aws-cdk-lib';
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { Construct } from 'constructs';
-import * as path from 'path';
+import * as cdk from "aws-cdk-lib";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import { Construct } from "constructs";
+import * as path from "path";
 
 export interface AuthAppStackProps extends cdk.StackProps {
   environment: string;
@@ -17,9 +17,9 @@ export class AuthAppStack extends cdk.Stack {
     const { environment, jwtSecret } = props;
 
     // DynamoDB Table for Users
-    const usersTable = new dynamodb.Table(this, 'UsersTable', {
+    const usersTable = new dynamodb.Table(this, "UsersTable", {
       tableName: `${environment}-auth-app-users`,
-      partitionKey: { name: 'email', type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: "email", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // Be careful in production
@@ -27,8 +27,8 @@ export class AuthAppStack extends cdk.Stack {
 
     // Global Secondary Index for user ID lookup
     usersTable.addGlobalSecondaryIndex({
-      indexName: 'UserIdIndex',
-      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      indexName: "UserIdIndex",
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
@@ -47,96 +47,32 @@ export class AuthAppStack extends cdk.Stack {
     };
 
     // Authentication Lambda Functions
-    const signUpFunction = new lambda.Function(this, 'SignUpFunction', {
+    const signUpFunction = new lambda.Function(this, "SignUpFunction", {
       ...lambdaProps,
       functionName: `${environment}-auth-signup`,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/auth'), {
-        bundling: {
-          image: lambda.Runtime.PROVIDED_AL2.bundlingImage,
-          user: 'root',
-          command: [
-            'bash', '-c', [
-              'yum update -y',
-              'yum install -y golang',
-              'export GOROOT=/usr/lib/golang',
-              'export GOPATH=/go',
-              'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH',
-              'cd /asset-input',
-              'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /asset-output/bootstrap signup.go'
-            ].join(' && ')
-          ],
-        },
-      }),
-      handler: 'bootstrap',
+      code: lambda.Code.fromAsset(path.join(__dirname, "../dist/lambda/signup")),
+      handler: "bootstrap",
     });
 
-    const signInFunction = new lambda.Function(this, 'SignInFunction', {
+    const signInFunction = new lambda.Function(this, "SignInFunction", {
       ...lambdaProps,
       functionName: `${environment}-auth-signin`,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/auth'), {
-        bundling: {
-          image: lambda.Runtime.PROVIDED_AL2.bundlingImage,
-          user: 'root',
-          command: [
-            'bash', '-c', [
-              'yum update -y',
-              'yum install -y golang',
-              'export GOROOT=/usr/lib/golang',
-              'export GOPATH=/go',
-              'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH',
-              'cd /asset-input',
-              'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /asset-output/bootstrap signin.go'
-            ].join(' && ')
-          ],
-        },
-      }),
-      handler: 'bootstrap',
+      code: lambda.Code.fromAsset(path.join(__dirname, "../dist/lambda/signin")),
+      handler: "bootstrap",
     });
 
-    const signOutFunction = new lambda.Function(this, 'SignOutFunction', {
+    const signOutFunction = new lambda.Function(this, "SignOutFunction", {
       ...lambdaProps,
       functionName: `${environment}-auth-signout`,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/auth'), {
-        bundling: {
-          image: lambda.Runtime.PROVIDED_AL2.bundlingImage,
-          user: 'root',
-          command: [
-            'bash', '-c', [
-              'yum update -y',
-              'yum install -y golang',
-              'export GOROOT=/usr/lib/golang',
-              'export GOPATH=/go',
-              'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH',
-              'cd /asset-input',
-              'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /asset-output/bootstrap signout.go'
-            ].join(' && ')
-          ],
-        },
-      }),
-      handler: 'bootstrap',
+      code: lambda.Code.fromAsset(path.join(__dirname, "../dist/lambda/signout")),
+      handler: "bootstrap",
     });
 
-    const meFunction = new lambda.Function(this, 'MeFunction', {
+    const meFunction = new lambda.Function(this, "MeFunction", {
       ...lambdaProps,
       functionName: `${environment}-auth-me`,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/auth'), {
-        bundling: {
-          image: lambda.Runtime.PROVIDED_AL2.bundlingImage,
-          user: 'root',
-          command: [
-            'bash', '-c', [
-              'yum update -y',
-              'yum install -y golang',
-              'export GOROOT=/usr/lib/golang',
-              'export GOPATH=/go',
-              'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH',
-              'cd /asset-input',
-              'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /asset-output/bootstrap me.go'
-            ].join(' && ')
-          ],
-        },
-      }),
-      handler: 'bootstrap',
+      code: lambda.Code.fromAsset(path.join(__dirname, "../dist/lambda/me")),
+      handler: "bootstrap",
     });
 
     // Grant DynamoDB permissions
@@ -145,13 +81,13 @@ export class AuthAppStack extends cdk.Stack {
     usersTable.grantReadData(meFunction);
 
     // API Gateway
-    const api = new apigateway.RestApi(this, 'AuthApi', {
+    const api = new apigateway.RestApi(this, "AuthApi", {
       restApiName: `${environment}-auth-app-api`,
-      description: 'Minimal Authentication API',
+      description: "Minimal Authentication API",
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: ['Content-Type', 'Authorization'],
+        allowHeaders: ["Content-Type", "Authorization"],
       },
       deployOptions: {
         stageName: environment,
@@ -159,38 +95,38 @@ export class AuthAppStack extends cdk.Stack {
     });
 
     // API Resources and Methods
-    const apiResource = api.root.addResource('api');
-    
+    const apiResource = api.root.addResource("api");
+
     // Auth endpoints
-    const authResource = apiResource.addResource('auth');
-    
-    authResource.addResource('signup').addMethod('POST', 
-      new apigateway.LambdaIntegration(signUpFunction)
-    );
-    
-    authResource.addResource('signin').addMethod('POST', 
-      new apigateway.LambdaIntegration(signInFunction)
-    );
-    
-    authResource.addResource('signout').addMethod('POST', 
-      new apigateway.LambdaIntegration(signOutFunction)
-    );
+    const authResource = apiResource.addResource("auth");
+
+    authResource
+      .addResource("signup")
+      .addMethod("POST", new apigateway.LambdaIntegration(signUpFunction));
+
+    authResource
+      .addResource("signin")
+      .addMethod("POST", new apigateway.LambdaIntegration(signInFunction));
+
+    authResource
+      .addResource("signout")
+      .addMethod("POST", new apigateway.LambdaIntegration(signOutFunction));
 
     // Me endpoint for protected profile access
-    apiResource.addResource('me').addMethod('GET', 
-      new apigateway.LambdaIntegration(meFunction)
-    );
+    apiResource
+      .addResource("me")
+      .addMethod("GET", new apigateway.LambdaIntegration(meFunction));
 
     // Outputs
-    new cdk.CfnOutput(this, 'ApiGatewayEndpoint', {
+    new cdk.CfnOutput(this, "ApiGatewayEndpoint", {
       value: api.url,
-      description: 'API Gateway endpoint URL',
+      description: "API Gateway endpoint URL",
       exportName: `${environment}-auth-app-api-endpoint`,
     });
 
-    new cdk.CfnOutput(this, 'UsersTableName', {
+    new cdk.CfnOutput(this, "UsersTableName", {
       value: usersTable.tableName,
-      description: 'DynamoDB Users table name',
+      description: "DynamoDB Users table name",
       exportName: `${environment}-auth-app-users-table`,
     });
   }

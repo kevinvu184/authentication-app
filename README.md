@@ -74,9 +74,11 @@ This minimal authentication API provides exactly what's needed for the frontend 
 ### Authentication Endpoints
 
 #### POST /api/auth/signup
+
 Creates a new user account.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -87,6 +89,7 @@ Creates a new user account.
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIs...",
@@ -103,9 +106,11 @@ Creates a new user account.
 ```
 
 #### POST /api/auth/signin
+
 Authenticates an existing user.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -114,6 +119,7 @@ Authenticates an existing user.
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIs...",
@@ -130,14 +136,17 @@ Authenticates an existing user.
 ```
 
 #### POST /api/auth/signout
+
 Signs out the current user (client-side token removal).
 
 **Headers:**
+
 ```
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "message": "Successfully signed out"
@@ -145,14 +154,17 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 #### GET /api/me
+
 Gets the current authenticated user's profile.
 
 **Headers:**
+
 ```
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "id": "abc123...",
@@ -186,6 +198,7 @@ All endpoints may return error responses in the following format:
 ```
 
 Common HTTP status codes:
+
 - `400` - Bad Request (validation errors)
 - `401` - Unauthorized (missing/invalid token)
 - `404` - Not Found (user not found)
@@ -200,6 +213,7 @@ Common HTTP status codes:
 **Global Secondary Index:** `UserIdIndex` on `id` field
 
 **Attributes:**
+
 - `email` (String) - User's email address (primary key)
 - `id` (String) - Unique user identifier
 - `password` (String) - Bcrypt hashed password
@@ -211,23 +225,26 @@ Common HTTP status codes:
 ## Environment Variables
 
 ### Backend (Lambda Functions)
+
 - `USERS_TABLE` - DynamoDB table name for users
 - `JWT_SECRET` - Secret key for JWT token signing/validation
 - `AWS_REGION` - AWS region for DynamoDB access
 
 ### Frontend
+
 See `.env.example` files in each directory for required configuration.
 
 ## Deployment
 
 ### Prerequisites
+
 - AWS CLI configured with appropriate permissions
 - Node.js 20+ and npm (CDK requires Node 20)
 - Go 1.21+
-- Docker (for Lambda function bundling)
 - AWS CDK CLI (`npm install -g aws-cdk`)
 
 ### Backend Deployment with CDK
+
 ```bash
 cd infrastructure
 npm install              # Install CDK dependencies
@@ -239,6 +256,7 @@ npm run synth            # Generate CloudFormation (optional)
 ```
 
 ### CDK Management Commands
+
 ```bash
 cd infrastructure
 npm run clean                # Clean build artifacts
@@ -249,6 +267,7 @@ npm run clean                # Clean build artifacts
 ```
 
 ### Frontend Deployment
+
 ```bash
 cd frontend
 npm install
@@ -259,6 +278,7 @@ npm run build
 ## Local Development
 
 ### Backend Development
+
 ```bash
 # Local development with CDK
 cd infrastructure
@@ -272,6 +292,7 @@ go run auth/signup.go  # Test signup function
 ```
 
 ### Frontend
+
 ```bash
 cd frontend
 npm install
@@ -291,7 +312,7 @@ npm start
 This project uses AWS CDK with TypeScript for infrastructure management, providing:
 
 - **Type Safety**: TypeScript ensures compile-time checking of AWS resources
-- **Reusable Constructs**: Modular and reusable infrastructure components  
+- **Reusable Constructs**: Modular and reusable infrastructure components
 - **Version Control**: Infrastructure changes tracked alongside application code
 - **Multi-Environment**: Easy deployment to different environments (dev, staging, prod)
 - **Programmatic Control**: Advanced logic and conditionals in infrastructure definitions
@@ -299,6 +320,7 @@ This project uses AWS CDK with TypeScript for infrastructure management, providi
 ### CDK Stack Overview
 
 The [AuthAppStack](infrastructure/lib/auth-app-stack.ts) defines:
+
 - **DynamoDB Table**: Users table with email primary key and ID index
 - **Lambda Functions**: Go-based handlers for authentication endpoints
 - **API Gateway**: RESTful API with CORS support
@@ -308,6 +330,7 @@ The [AuthAppStack](infrastructure/lib/auth-app-stack.ts) defines:
 ### Migration from SAM
 
 The project was migrated from AWS SAM to CDK for better:
+
 - **Developer Experience**: Full IDE support with IntelliSense
 - **Flexibility**: Programmatic resource creation and configuration
 - **Maintainability**: Strongly-typed infrastructure definitions
