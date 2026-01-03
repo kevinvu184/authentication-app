@@ -15,7 +15,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-// SignUpHandler handles user registration
 func SignUpHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var signUpReq common.SignUpRequest
 	
@@ -23,7 +22,6 @@ func SignUpHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return common.ErrorResponseFunc(http.StatusBadRequest, "Bad Request", "Invalid request body")
 	}
 
-	// Validate input
 	if !common.ValidateEmail(signUpReq.Email) {
 		return common.ErrorResponseFunc(http.StatusBadRequest, "Bad Request", "Invalid email format")
 	}
@@ -36,19 +34,16 @@ func SignUpHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return common.ErrorResponseFunc(http.StatusBadRequest, "Bad Request", "First name and last name are required")
 	}
 
-	// Check if user already exists
 	existingUser, _ := common.GetUserByEmail(signUpReq.Email)
 	if existingUser != nil {
 		return common.ErrorResponseFunc(http.StatusConflict, "Conflict", "User with this email already exists")
 	}
 
-	// Hash password
 	hashedPassword, err := common.HashPassword(signUpReq.Password)
 	if err != nil {
 		return common.ErrorResponseFunc(http.StatusInternalServerError, "Internal Server Error", "Failed to process password")
 	}
 
-	// Create user
 	userID, err := generateUserID()
 	if err != nil {
 		return common.ErrorResponseFunc(http.StatusInternalServerError, "Internal Server Error", "Failed to generate user ID")
@@ -63,18 +58,15 @@ func SignUpHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		Password:  hashedPassword,
 	}
 
-	// Save to DynamoDB
 	if err := common.SaveUser(user); err != nil {
 		return common.ErrorResponseFunc(http.StatusInternalServerError, "Internal Server Error", "Failed to create user")
 	}
 
-	// Generate JWT token
 	token, err := common.GenerateJWT(user.ID, user.Email)
 	if err != nil {
 		return common.ErrorResponseFunc(http.StatusInternalServerError, "Internal Server Error", "Failed to generate token")
 	}
 
-	// Prepare response
 	authResponse := common.AuthResponse{
 		Token:     token,
 		ExpiresIn: 24 * 60 * 60, // 24 hours in seconds
@@ -84,7 +76,6 @@ func SignUpHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 	return common.Response(http.StatusCreated, authResponse)
 }
 
-// generateUserID creates a secure random user ID
 func generateUserID() (string, error) {
 	bytes := make([]byte, 16)
 	if _, err := rand.Read(bytes); err != nil {

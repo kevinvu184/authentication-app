@@ -10,10 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-// DynamoDB client
 var DynamoClient *dynamodb.DynamoDB
 
-// Initialize DynamoDB client
 func init() {
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(os.Getenv("AWS_REGION")),
@@ -21,7 +19,6 @@ func init() {
 	DynamoClient = dynamodb.New(sess)
 }
 
-// GetTableName returns the DynamoDB table name from environment variable
 func GetTableName() string {
 	tableName := os.Getenv("USERS_TABLE")
 	if tableName == "" {
@@ -30,7 +27,6 @@ func GetTableName() string {
 	return tableName
 }
 
-// GetUserByEmail retrieves a user from DynamoDB by email
 func GetUserByEmail(email string) (*User, error) {
 	result, err := DynamoClient.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(GetTableName()),
@@ -58,7 +54,6 @@ func GetUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-// GetUserByID retrieves a user from DynamoDB by ID
 func GetUserByID(id string) (*User, error) {
 	result, err := DynamoClient.Query(&dynamodb.QueryInput{
 		TableName:              aws.String(GetTableName()),
@@ -88,7 +83,6 @@ func GetUserByID(id string) (*User, error) {
 	return &user, nil
 }
 
-// SaveUser saves a user to DynamoDB
 func SaveUser(user *User) error {
 	item, err := dynamodbattribute.MarshalMap(user)
 	if err != nil {
@@ -98,30 +92,6 @@ func SaveUser(user *User) error {
 	_, err = DynamoClient.PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(GetTableName()),
 		Item:      item,
-	})
-
-	return err
-}
-
-// UpdateUser updates a user in DynamoDB
-func UpdateUser(user *User) error {
-	// Update specific fields to avoid overwriting the entire record
-	_, err := DynamoClient.UpdateItem(&dynamodb.UpdateItemInput{
-		TableName: aws.String(GetTableName()),
-		Key: map[string]*dynamodb.AttributeValue{
-			"email": {
-				S: aws.String(user.Email),
-			},
-		},
-		UpdateExpression: aws.String("SET firstName = :firstName, lastName = :lastName"),
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":firstName": {
-				S: aws.String(user.FirstName),
-			},
-			":lastName": {
-				S: aws.String(user.LastName),
-			},
-		},
 	})
 
 	return err

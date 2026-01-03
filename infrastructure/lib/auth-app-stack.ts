@@ -22,11 +22,11 @@ export class AuthAppStack extends cdk.Stack {
 
     // DynamoDB Table for Users
     const usersTable = new dynamodb.Table(this, "UsersTable", {
-      tableName: `${environment}-auth-app-users`,
-      partitionKey: { name: "email", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      partitionKey: { name: "email", type: dynamodb.AttributeType.STRING },
       pointInTimeRecovery: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // Be careful in production
+      tableName: `${environment}-auth-app-users`,
     });
 
     // Global Secondary Index for user ID lookup
@@ -38,50 +38,50 @@ export class AuthAppStack extends cdk.Stack {
 
     // Shared Lambda environment variables
     const lambdaEnvironment = {
-      USERS_TABLE: usersTable.tableName,
       JWT_SECRET: jwtSecret,
+      USERS_TABLE: usersTable.tableName,
     };
 
     // Lambda function common properties
     const lambdaProps = {
-      runtime: lambda.Runtime.PROVIDED_AL2,
       architecture: lambda.Architecture.X86_64,
-      timeout: cdk.Duration.seconds(30),
       environment: lambdaEnvironment,
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      timeout: cdk.Duration.seconds(30),
     };
 
     // Authentication Lambda Functions
     const signUpFunction = new lambda.Function(this, "SignUpFunction", {
       ...lambdaProps,
-      functionName: `${environment}-auth-signup`,
       code: lambda.Code.fromAsset(
         path.join(__dirname, "../dist/lambda/signup")
       ),
+      functionName: `${environment}-auth-signup`,
       handler: "bootstrap",
     });
 
     const signInFunction = new lambda.Function(this, "SignInFunction", {
       ...lambdaProps,
-      functionName: `${environment}-auth-signin`,
       code: lambda.Code.fromAsset(
         path.join(__dirname, "../dist/lambda/signin")
       ),
+      functionName: `${environment}-auth-signin`,
       handler: "bootstrap",
     });
 
     const signOutFunction = new lambda.Function(this, "SignOutFunction", {
       ...lambdaProps,
-      functionName: `${environment}-auth-signout`,
       code: lambda.Code.fromAsset(
         path.join(__dirname, "../dist/lambda/signout")
       ),
+      functionName: `${environment}-auth-signout`,
       handler: "bootstrap",
     });
 
     const meFunction = new lambda.Function(this, "MeFunction", {
       ...lambdaProps,
-      functionName: `${environment}-auth-me`,
       code: lambda.Code.fromAsset(path.join(__dirname, "../dist/lambda/me")),
+      functionName: `${environment}-auth-me`,
       handler: "bootstrap",
     });
 
@@ -95,16 +95,16 @@ export class AuthAppStack extends cdk.Stack {
       restApiName: `${environment}-auth-app-api`,
       description: "Minimal Authentication API",
       defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
         allowHeaders: [
-          "Content-Type",
           "Authorization",
+          "Content-Type",
           "X-Amz-Date",
-          "X-Api-Key",
           "X-Amz-Security-Token",
           "X-Amz-User-Agent",
+          "X-Api-Key",
         ],
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
       },
       deployOptions: {
         stageName: environment,
@@ -136,13 +136,13 @@ export class AuthAppStack extends cdk.Stack {
 
     // S3 Bucket for Frontend hosting
     const frontendBucket = new s3.Bucket(this, "FrontendBucket", {
-      bucketName: `${environment}-auth-app-frontend-${this.account}`,
-      websiteIndexDocument: "index.html",
-      websiteErrorDocument: "index.html", // SPA routing
-      publicReadAccess: true,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      bucketName: `${environment}-auth-app-frontend-${this.account}`,
+      publicReadAccess: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      websiteErrorDocument: "index.html", // SPA routing
+      websiteIndexDocument: "index.html",
     });
 
     // CloudFront Distribution
@@ -151,11 +151,11 @@ export class AuthAppStack extends cdk.Stack {
       "FrontendDistribution",
       {
         defaultBehavior: {
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+          cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD_OPTIONS,
           origin: new cloudfrontOrigins.S3Origin(frontendBucket),
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-          cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD_OPTIONS,
         },
         defaultRootObject: "index.html",
         errorResponses: [
@@ -178,37 +178,37 @@ export class AuthAppStack extends cdk.Stack {
 
     // Deploy frontend files to S3
     new s3Deployment.BucketDeployment(this, "FrontendDeployment", {
-      sources: [
-        s3Deployment.Source.asset(path.join(__dirname, "../../frontend/build")),
-      ],
       destinationBucket: frontendBucket,
       distribution: distribution,
       distributionPaths: ["/*"],
+      sources: [
+        s3Deployment.Source.asset(path.join(__dirname, "../../frontend/build")),
+      ],
     });
 
     // Outputs
     new cdk.CfnOutput(this, "ApiGatewayEndpoint", {
-      value: api.url,
       description: "API Gateway endpoint URL",
       exportName: `${environment}-auth-app-api-endpoint`,
+      value: api.url,
     });
 
     new cdk.CfnOutput(this, "UsersTableName", {
-      value: usersTable.tableName,
       description: "DynamoDB Users table name",
       exportName: `${environment}-auth-app-users-table`,
+      value: usersTable.tableName,
     });
 
     new cdk.CfnOutput(this, "FrontendUrl", {
-      value: `https://${distribution.distributionDomainName}`,
       description: "Frontend CloudFront URL",
       exportName: `${environment}-auth-app-frontend-url`,
+      value: `https://${distribution.distributionDomainName}`,
     });
 
     new cdk.CfnOutput(this, "FrontendBucketName", {
-      value: frontendBucket.bucketName,
       description: "Frontend S3 bucket name",
       exportName: `${environment}-auth-app-frontend-bucket`,
+      value: frontendBucket.bucketName,
     });
   }
 }

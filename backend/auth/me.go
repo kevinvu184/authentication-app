@@ -11,13 +11,10 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-// MeHandler retrieves the authenticated user's profile
-// This endpoint returns the current user's information based on their JWT token
 func MeHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	// Extract JWT token from Authorization header
 	authHeader := request.Headers["Authorization"]
 	if authHeader == "" {
-		authHeader = request.Headers["authorization"] // Handle case-insensitive headers
+		authHeader = request.Headers["authorization"]
 	}
 	
 	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
@@ -26,13 +23,11 @@ func MeHandler(ctx context.Context, request events.APIGatewayProxyRequest) (even
 
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-	// Validate JWT token
 	claims, err := common.ValidateJWT(tokenString)
 	if err != nil {
 		return common.ErrorResponseFunc(http.StatusUnauthorized, "Unauthorized", "Invalid or expired token")
 	}
 
-	// Get user from database
 	user, err := common.GetUserByID(claims.UserID)
 	if err != nil {
 		return common.ErrorResponseFunc(http.StatusNotFound, "Not Found", "User not found")

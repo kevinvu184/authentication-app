@@ -12,7 +12,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// User represents the user model
 type User struct {
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	Email     string    `json:"email" dynamodbav:"email"`
@@ -22,41 +21,35 @@ type User struct {
 	Password  string    `json:"-" dynamodbav:"password"`
 }
 
-// SignUpRequest represents the sign-up request payload
 type SignUpRequest struct {
 	Email     string `json:"email"`
-	Password  string `json:"password"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+	Password  string `json:"password"`
 }
 
-// SignInRequest represents the sign-in request payload
 type SignInRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// AuthResponse represents the authentication response
 type AuthResponse struct {
-	Token     string `json:"token"`
 	ExpiresIn int64  `json:"expiresIn"`
+	Token     string `json:"token"`
 	User      User   `json:"user"`
 }
 
-// ErrorResponse represents an error response
 type ErrorResponse struct {
 	Error   string `json:"error"`
 	Message string `json:"message"`
 }
 
-// JWTClaims represents the JWT claims
 type JWTClaims struct {
-	UserID string `json:"userId"`
 	Email  string `json:"email"`
+	UserID string `json:"userId"`
 	jwt.RegisteredClaims
 }
 
-// Response creates a standardized API Gateway response
 func Response(statusCode int, body interface{}) (events.APIGatewayProxyResponse, error) {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
@@ -84,7 +77,6 @@ func Response(statusCode int, body interface{}) (events.APIGatewayProxyResponse,
 	}, nil
 }
 
-// ErrorResponse creates an error response
 func ErrorResponseFunc(statusCode int, error, message string) (events.APIGatewayProxyResponse, error) {
 	return Response(statusCode, ErrorResponse{
 		Error:   error,
@@ -92,7 +84,6 @@ func ErrorResponseFunc(statusCode int, error, message string) (events.APIGateway
 	})
 }
 
-// HashPassword hashes a password using bcrypt
 func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -101,13 +92,11 @@ func HashPassword(password string) (string, error) {
 	return string(hash), nil
 }
 
-// CheckPassword verifies a password against its hash
 func CheckPassword(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
 
-// GenerateJWT generates a JWT token for a user
 func GenerateJWT(userID, email string) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
@@ -134,7 +123,6 @@ func GenerateJWT(userID, email string) (string, error) {
 	return tokenString, nil
 }
 
-// ValidateJWT validates a JWT token and returns the claims
 func ValidateJWT(tokenString string) (*JWTClaims, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
@@ -159,9 +147,7 @@ func ValidateJWT(tokenString string) (*JWTClaims, error) {
 	return nil, fmt.Errorf("invalid token")
 }
 
-// ValidateEmail performs basic email validation
 func ValidateEmail(email string) bool {
-	// Basic email validation - in production, use a proper email validation library
 	return len(email) > 5 && len(email) < 255 && 
 		   len(email) > len("a@b.co") && 
 		   email[len(email)-1] != '.' &&
@@ -170,8 +156,6 @@ func ValidateEmail(email string) bool {
 		   email[0] != '@'
 }
 
-// ValidatePassword performs basic password validation
 func ValidatePassword(password string) bool {
-	// Basic password validation - minimum 8 characters
 	return len(password) >= 8
 }

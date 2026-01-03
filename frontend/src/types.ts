@@ -31,9 +31,9 @@ export type ErrorResponse = {
 
 export type AuthContextType = {
   isLoading: boolean;
-  token: string | null;
-  user: User | null;
   signIn: (data: SignInRequest) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (data: SignUpRequest) => Promise<void>;
+  token: string | null;
+  user: User | null;
 };
