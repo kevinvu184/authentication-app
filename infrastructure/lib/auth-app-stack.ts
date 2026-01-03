@@ -20,7 +20,6 @@ export class AuthAppStack extends cdk.Stack {
 
     const { environment, jwtSecret } = props;
 
-    // DynamoDB Table for Users
     const usersTable = new dynamodb.Table(this, "UsersTable", {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: { name: "email", type: dynamodb.AttributeType.STRING },
@@ -29,20 +28,17 @@ export class AuthAppStack extends cdk.Stack {
       tableName: `${environment}-auth-app-users`,
     });
 
-    // Global Secondary Index for user ID lookup
     usersTable.addGlobalSecondaryIndex({
       indexName: "UserIdIndex",
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
-    // Shared Lambda environment variables
     const lambdaEnvironment = {
       JWT_SECRET: jwtSecret,
       USERS_TABLE: usersTable.tableName,
     };
 
-    // Lambda function common properties
     const lambdaProps = {
       architecture: lambda.Architecture.X86_64,
       environment: lambdaEnvironment,
@@ -50,7 +46,6 @@ export class AuthAppStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
     };
 
-    // Authentication Lambda Functions
     const signUpFunction = new lambda.Function(this, "SignUpFunction", {
       ...lambdaProps,
       code: lambda.Code.fromAsset(
@@ -85,12 +80,10 @@ export class AuthAppStack extends cdk.Stack {
       handler: "bootstrap",
     });
 
-    // Grant DynamoDB permissions
     usersTable.grantReadWriteData(signUpFunction);
     usersTable.grantReadData(signInFunction);
     usersTable.grantReadData(meFunction);
 
-    // API Gateway
     const api = new apigateway.RestApi(this, "AuthApi", {
       restApiName: `${environment}-auth-app-api`,
       description: "Minimal Authentication API",
@@ -111,10 +104,7 @@ export class AuthAppStack extends cdk.Stack {
       },
     });
 
-    // API Resources and Methods
     const apiResource = api.root.addResource("api");
-
-    // Auth endpoints
     const authResource = apiResource.addResource("auth");
 
     authResource
@@ -129,12 +119,10 @@ export class AuthAppStack extends cdk.Stack {
       .addResource("signout")
       .addMethod("POST", new apigateway.LambdaIntegration(signOutFunction));
 
-    // Me endpoint for protected profile access
     apiResource
       .addResource("me")
       .addMethod("GET", new apigateway.LambdaIntegration(meFunction));
 
-    // S3 Bucket for Frontend hosting
     const frontendBucket = new s3.Bucket(this, "FrontendBucket", {
       autoDeleteObjects: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
@@ -145,7 +133,6 @@ export class AuthAppStack extends cdk.Stack {
       websiteIndexDocument: "index.html",
     });
 
-    // CloudFront Distribution
     const distribution = new cloudfront.Distribution(
       this,
       "FrontendDistribution",
@@ -162,13 +149,13 @@ export class AuthAppStack extends cdk.Stack {
           {
             httpStatus: 404,
             responseHttpStatus: 200,
-            responsePagePath: "/index.html", // SPA routing
+            responsePagePath: "/index.html",
             ttl: cdk.Duration.minutes(5),
           },
           {
             httpStatus: 403,
             responseHttpStatus: 200,
-            responsePagePath: "/index.html", // SPA routing
+            responsePagePath: "/index.html",
             ttl: cdk.Duration.minutes(5),
           },
         ],
@@ -176,7 +163,6 @@ export class AuthAppStack extends cdk.Stack {
       }
     );
 
-    // Deploy frontend files to S3
     new s3Deployment.BucketDeployment(this, "FrontendDeployment", {
       destinationBucket: frontendBucket,
       distribution: distribution,
@@ -186,7 +172,6 @@ export class AuthAppStack extends cdk.Stack {
       ],
     });
 
-    // Outputs
     new cdk.CfnOutput(this, "ApiGatewayEndpoint", {
       description: "API Gateway endpoint URL",
       exportName: `${environment}-auth-app-api-endpoint`,
