@@ -6,7 +6,6 @@ import { AuthAppStack } from "../lib/auth-app-stack";
 
 const app = new cdk.App();
 
-// Get environment and JWT secret from context or environment variables
 const environment =
   app.node.tryGetContext("environment") || process.env.ENVIRONMENT || "dev";
 const jwtSecret = app.node.tryGetContext("jwtSecret") || process.env.JWT_SECRET;
