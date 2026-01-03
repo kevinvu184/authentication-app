@@ -23,12 +23,14 @@
     "typeRoots": [
       "./node_modules/@types"
     ],
-    "outDir": "./lib",
+    "outDir": "./dist",
     "rootDir": "./"
   },
   "exclude": [
     "node_modules",
-    "lib",
-    "*.js"
+    "dist",
+    "cdk.out",
+    "*.js",
+    "*.d.ts"
   ]
 }

@@ -1,0 +1,197 @@
+import * as cdk from 'aws-cdk-lib';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import { Construct } from 'constructs';
+import * as path from 'path';
+
+export interface AuthAppStackProps extends cdk.StackProps {
+  environment: string;
+  jwtSecret: string;
+}
+
+export class AuthAppStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: AuthAppStackProps) {
+    super(scope, id, props);
+
+    const { environment, jwtSecret } = props;
+
+    // DynamoDB Table for Users
+    const usersTable = new dynamodb.Table(this, 'UsersTable', {
+      tableName: `${environment}-auth-app-users`,
+      partitionKey: { name: 'email', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // Be careful in production
+    });
+
+    // Global Secondary Index for user ID lookup
+    usersTable.addGlobalSecondaryIndex({
+      indexName: 'UserIdIndex',
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    // Shared Lambda environment variables
+    const lambdaEnvironment = {
+      USERS_TABLE: usersTable.tableName,
+      JWT_SECRET: jwtSecret,
+    };
+
+    // Lambda function common properties
+    const lambdaProps = {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      architecture: lambda.Architecture.X86_64,
+      timeout: cdk.Duration.seconds(30),
+      environment: lambdaEnvironment,
+    };
+
+    // Authentication Lambda Functions
+    const signUpFunction = new lambda.Function(this, 'SignUpFunction', {
+      ...lambdaProps,
+      functionName: `${environment}-auth-signup`,
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/auth'), {
+        bundling: {
+          image: lambda.Runtime.PROVIDED_AL2.bundlingImage,
+          user: 'root',
+          command: [
+            'bash', '-c', [
+              'yum update -y',
+              'yum install -y golang',
+              'export GOROOT=/usr/lib/golang',
+              'export GOPATH=/go',
+              'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH',
+              'cd /asset-input',
+              'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /asset-output/bootstrap signup.go'
+            ].join(' && ')
+          ],
+        },
+      }),
+      handler: 'bootstrap',
+    });
+
+    const signInFunction = new lambda.Function(this, 'SignInFunction', {
+      ...lambdaProps,
+      functionName: `${environment}-auth-signin`,
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/auth'), {
+        bundling: {
+          image: lambda.Runtime.PROVIDED_AL2.bundlingImage,
+          user: 'root',
+          command: [
+            'bash', '-c', [
+              'yum update -y',
+              'yum install -y golang',
+              'export GOROOT=/usr/lib/golang',
+              'export GOPATH=/go',
+              'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH',
+              'cd /asset-input',
+              'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /asset-output/bootstrap signin.go'
+            ].join(' && ')
+          ],
+        },
+      }),
+      handler: 'bootstrap',
+    });
+
+    const signOutFunction = new lambda.Function(this, 'SignOutFunction', {
+      ...lambdaProps,
+      functionName: `${environment}-auth-signout`,
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/auth'), {
+        bundling: {
+          image: lambda.Runtime.PROVIDED_AL2.bundlingImage,
+          user: 'root',
+          command: [
+            'bash', '-c', [
+              'yum update -y',
+              'yum install -y golang',
+              'export GOROOT=/usr/lib/golang',
+              'export GOPATH=/go',
+              'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH',
+              'cd /asset-input',
+              'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /asset-output/bootstrap signout.go'
+            ].join(' && ')
+          ],
+        },
+      }),
+      handler: 'bootstrap',
+    });
+
+    const meFunction = new lambda.Function(this, 'MeFunction', {
+      ...lambdaProps,
+      functionName: `${environment}-auth-me`,
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/auth'), {
+        bundling: {
+          image: lambda.Runtime.PROVIDED_AL2.bundlingImage,
+          user: 'root',
+          command: [
+            'bash', '-c', [
+              'yum update -y',
+              'yum install -y golang',
+              'export GOROOT=/usr/lib/golang',
+              'export GOPATH=/go',
+              'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH',
+              'cd /asset-input',
+              'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /asset-output/bootstrap me.go'
+            ].join(' && ')
+          ],
+        },
+      }),
+      handler: 'bootstrap',
+    });
+
+    // Grant DynamoDB permissions
+    usersTable.grantReadWriteData(signUpFunction);
+    usersTable.grantReadData(signInFunction);
+    usersTable.grantReadData(meFunction);
+
+    // API Gateway
+    const api = new apigateway.RestApi(this, 'AuthApi', {
+      restApiName: `${environment}-auth-app-api`,
+      description: 'Minimal Authentication API',
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ['Content-Type', 'Authorization'],
+      },
+      deployOptions: {
+        stageName: environment,
+      },
+    });
+
+    // API Resources and Methods
+    const apiResource = api.root.addResource('api');
+    
+    // Auth endpoints
+    const authResource = apiResource.addResource('auth');
+    
+    authResource.addResource('signup').addMethod('POST', 
+      new apigateway.LambdaIntegration(signUpFunction)
+    );
+    
+    authResource.addResource('signin').addMethod('POST', 
+      new apigateway.LambdaIntegration(signInFunction)
+    );
+    
+    authResource.addResource('signout').addMethod('POST', 
+      new apigateway.LambdaIntegration(signOutFunction)
+    );
+
+    // Me endpoint for protected profile access
+    apiResource.addResource('me').addMethod('GET', 
+      new apigateway.LambdaIntegration(meFunction)
+    );
+
+    // Outputs
+    new cdk.CfnOutput(this, 'ApiGatewayEndpoint', {
+      value: api.url,
+      description: 'API Gateway endpoint URL',
+      exportName: `${environment}-auth-app-api-endpoint`,
+    });
+
+    new cdk.CfnOutput(this, 'UsersTableName', {
+      value: usersTable.tableName,
+      description: 'DynamoDB Users table name',
+      exportName: `${environment}-auth-app-users-table`,
+    });
+  }
+}

@@ -222,15 +222,18 @@ See `.env.example` files in each directory for required configuration.
 
 ### Prerequisites
 - AWS CLI configured with appropriate permissions
-- Node.js 18+ and npm
+- Node.js 20+ and npm (CDK requires Node 20)
 - Go 1.21+
+- Docker (for Lambda function bundling)
 - AWS CDK CLI (`npm install -g aws-cdk`)
 
 ### Backend Deployment with CDK
 ```bash
 cd infrastructure
-npm install          # Install CDK dependencies
-./deploy.sh dev      # Deploy to dev environment
+npm install              # Install CDK dependencies
+npm run build            # Compile TypeScript
+npm run synth            # Generate CloudFormation (optional)
+./deploy.sh dev         # Deploy to dev environment
 # or
 ./deploy.sh prod your-jwt-secret-here  # Deploy to prod with custom JWT secret
 ```
@@ -238,6 +241,7 @@ npm install          # Install CDK dependencies
 ### CDK Management Commands
 ```bash
 cd infrastructure
+npm run clean                # Clean build artifacts
 ./cdk-utils.sh dev diff     # Preview changes
 ./cdk-utils.sh dev synth    # Generate CloudFormation
 ./cdk-utils.sh dev destroy  # Delete stack

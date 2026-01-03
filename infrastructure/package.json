@@ -2,16 +2,17 @@
   "name": "auth-app-infrastructure",
   "version": "1.0.0",
   "description": "CDK Infrastructure for Authentication App",
-  "main": "lib/index.js",
+  "main": "dist/lib/index.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
     "deploy": "npm run build && cdk deploy",
-    "destroy": "cdk destroy",
-    "diff": "cdk diff",
-    "synth": "cdk synth"
+    "destroy": "npm run build && cdk destroy",
+    "diff": "npm run build && cdk diff",
+    "synth": "npm run build && cdk synth",
+    "clean": "rm -rf dist/ cdk.out/"
   },
   "devDependencies": {
     "@types/jest": "^29.5.5",
