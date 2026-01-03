@@ -64,8 +64,10 @@ func Response(statusCode int, body interface{}) (events.APIGatewayProxyResponse,
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
 			Headers: map[string]string{
-				"Content-Type":                "application/json",
-				"Access-Control-Allow-Origin": "*",
+				"Content-Type":                 "application/json",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Headers": "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
+				"Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
 			},
 			Body: `{"error":"Internal Server Error","message":"Failed to marshal response"}`,
 		}, nil
@@ -74,8 +76,10 @@ func Response(statusCode int, body interface{}) (events.APIGatewayProxyResponse,
 	return events.APIGatewayProxyResponse{
 		StatusCode: statusCode,
 		Headers: map[string]string{
-			"Content-Type":                "application/json",
-			"Access-Control-Allow-Origin": "*",
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
+			"Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
 		},
 		Body: string(jsonBody),
 	}, nil

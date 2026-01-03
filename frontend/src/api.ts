@@ -35,7 +35,7 @@ function getAuthHeaders(token?: string): HeadersInit {
 export const api = {
   // Sign up a new user
   signUp: async (data: SignUpRequest): Promise<AuthResponse> => {
-    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
@@ -46,13 +46,25 @@ export const api = {
 
   // Sign in an existing user
   signIn: async (data: SignInRequest): Promise<AuthResponse> => {
-    const response = await fetch(`${API_BASE_URL}/auth/signin`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/signin`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
 
     return handleResponse<AuthResponse>(response);
+  },
+
+  // Sign out user
+  signOut: async (token: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/signout`, {
+      method: "POST",
+      headers: getAuthHeaders(token),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Sign out failed: ${response.status}`);
+    }
   },
 
   // Get user profile (using /api/me endpoint)

@@ -87,7 +87,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signOut = (): void => {
+  const signOut = async (): Promise<void> => {
+    if (token) {
+      try {
+        await api.signOut(token);
+      } catch (error) {
+        console.error("Sign out API call failed:", error);
+        // Continue with local sign out even if API fails
+      }
+    }
+
     setToken(null);
     setUser(null);
 

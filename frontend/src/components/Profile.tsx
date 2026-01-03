@@ -59,10 +59,6 @@ const Profile: React.FC = () => {
           <strong>Member Since:</strong>{" "}
           {new Date(user.createdAt).toLocaleDateString()}
         </div>
-        <div style={{ marginBottom: "1rem" }}>
-          <strong>Last Updated:</strong>{" "}
-          {new Date(user.updatedAt).toLocaleDateString()}
-        </div>
       </div>
     </div>
   );

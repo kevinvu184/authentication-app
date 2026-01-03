@@ -35,6 +35,6 @@ export type AuthContextType = {
   token: string | null;
   user: User | null;
   signIn: (data: SignInRequest) => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   signUp: (data: SignUpRequest) => Promise<void>;
 };
