@@ -113,16 +113,13 @@ func UpdateUser(user *User) error {
 				S: aws.String(user.Email),
 			},
 		},
-		UpdateExpression: aws.String("SET firstName = :firstName, lastName = :lastName, updatedAt = :updatedAt"),
+		UpdateExpression: aws.String("SET firstName = :firstName, lastName = :lastName"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":firstName": {
 				S: aws.String(user.FirstName),
 			},
 			":lastName": {
 				S: aws.String(user.LastName),
-			},
-			":updatedAt": {
-				S: aws.String(user.UpdatedAt.Format("2006-01-02T15:04:05Z07:00")),
 			},
 		},
 	})

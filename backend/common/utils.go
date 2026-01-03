@@ -14,13 +14,12 @@ import (
 
 // User represents the user model
 type User struct {
-	ID        string    `json:"id" dynamodbav:"id"`
-	Email     string    `json:"email" dynamodbav:"email"`
-	Password  string    `json:"-" dynamodbav:"password"`
-	FirstName string    `json:"firstName" dynamodbav:"firstName"`
-	LastName  string    `json:"lastName" dynamodbav:"lastName"`
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
+	Email     string    `json:"email" dynamodbav:"email"`
+	FirstName string    `json:"firstName" dynamodbav:"firstName"`
+	ID        string    `json:"id" dynamodbav:"id"`
+	LastName  string    `json:"lastName" dynamodbav:"lastName"`
+	Password  string    `json:"-" dynamodbav:"password"`
 }
 
 // SignUpRequest represents the sign-up request payload

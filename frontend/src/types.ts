@@ -4,7 +4,6 @@ export type User = {
   firstName: string;
   id: string;
   lastName: string;
-  updatedAt: string;
 };
 
 export type AuthResponse = {

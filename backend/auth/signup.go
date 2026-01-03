@@ -55,13 +55,12 @@ func SignUpHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 	}
 
 	user := &common.User{
-		ID:        userID,
-		Email:     strings.ToLower(strings.TrimSpace(signUpReq.Email)),
-		Password:  hashedPassword,
-		FirstName: strings.TrimSpace(signUpReq.FirstName),
-		LastName:  strings.TrimSpace(signUpReq.LastName),
 		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Email:     strings.ToLower(strings.TrimSpace(signUpReq.Email)),
+		FirstName: strings.TrimSpace(signUpReq.FirstName),
+		ID:        userID,
+		LastName:  strings.TrimSpace(signUpReq.LastName),
+		Password:  hashedPassword,
 	}
 
 	// Save to DynamoDB
