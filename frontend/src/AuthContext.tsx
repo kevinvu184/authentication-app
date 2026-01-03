@@ -1,16 +1,23 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, AuthContextType, SignUpRequest, SignInRequest, UpdateProfileRequest } from './types';
-import { api } from './api';
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
+import { api } from "./api";
+import { AuthContextType, SignInRequest, SignUpRequest, User } from "./types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Local storage keys
-const TOKEN_KEY = 'auth_token';
-const USER_KEY = 'auth_user';
+const TOKEN_KEY = "auth_token";
+const USER_KEY = "auth_user";
 
-interface AuthProviderProps {
+type AuthProviderProps = {
   children: ReactNode;
-}
+};
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -29,7 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const userData = await api.getProfile(storedToken);
           setToken(storedToken);
           setUser(userData);
-          
+
           // Update stored user data if it has changed
           localStorage.setItem(USER_KEY, JSON.stringify(userData));
         } else {
@@ -38,7 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.removeItem(USER_KEY);
         }
       } catch (error) {
-        console.error('Failed to initialize auth:', error);
+        console.error("Failed to initialize auth:", error);
         // Clear invalid auth data
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
@@ -55,12 +62,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await api.signUp(data);
       setToken(response.token);
       setUser(response.user);
-      
+
       // Store in local storage
       localStorage.setItem(TOKEN_KEY, response.token);
       localStorage.setItem(USER_KEY, JSON.stringify(response.user));
     } catch (error) {
-      console.error('Sign up failed:', error);
+      console.error("Sign up failed:", error);
       throw error;
     }
   };
@@ -70,12 +77,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await api.signIn(data);
       setToken(response.token);
       setUser(response.user);
-      
+
       // Store in local storage
       localStorage.setItem(TOKEN_KEY, response.token);
       localStorage.setItem(USER_KEY, JSON.stringify(response.user));
     } catch (error) {
-      console.error('Sign in failed:', error);
+      console.error("Sign in failed:", error);
       throw error;
     }
   };
@@ -83,37 +90,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = (): void => {
     setToken(null);
     setUser(null);
-    
+
     // Clear local storage
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
   };
 
-  const updateProfile = async (data: UpdateProfileRequest): Promise<void> => {
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
-
-    try {
-      const updatedUser = await api.updateProfile(token, data);
-      setUser(updatedUser);
-      
-      // Update stored user data
-      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
-    } catch (error) {
-      console.error('Profile update failed:', error);
-      throw error;
-    }
-  };
-
   const value: AuthContextType = {
-    user,
-    token,
     isLoading,
+    token,
+    user,
     signUp,
     signIn,
     signOut,
-    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -123,7 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

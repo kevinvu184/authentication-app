@@ -1,53 +1,40 @@
-// User interface
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
+export type User = {
   createdAt: string;
+  email: string;
+  firstName: string;
+  id: string;
+  lastName: string;
   updatedAt: string;
-}
+};
 
-// Auth response interface
-export interface AuthResponse {
-  token: string;
+export type AuthResponse = {
   expiresIn: number;
+  token: string;
   user: User;
-}
+};
 
-// Sign up request interface
-export interface SignUpRequest {
+export type SignUpRequest = {
   email: string;
-  password: string;
   firstName: string;
   lastName: string;
-}
+  password: string;
+};
 
-// Sign in request interface
-export interface SignInRequest {
+export type SignInRequest = {
   email: string;
   password: string;
-}
+};
 
-// Profile update request interface
-export interface UpdateProfileRequest {
-  firstName: string;
-  lastName: string;
-}
-
-// Error response interface
-export interface ErrorResponse {
+export type ErrorResponse = {
   error: string;
   message: string;
-}
+};
 
-// Auth context interface
-export interface AuthContextType {
-  user: User | null;
-  token: string | null;
+export type AuthContextType = {
   isLoading: boolean;
-  signUp: (data: SignUpRequest) => Promise<void>;
+  token: string | null;
+  user: User | null;
   signIn: (data: SignInRequest) => Promise<void>;
   signOut: () => void;
-  updateProfile: (data: UpdateProfileRequest) => Promise<void>;
-}
+  signUp: (data: SignUpRequest) => Promise<void>;
+};
