@@ -22,7 +22,7 @@ func init() {
 func GetTableName() string {
 	tableName := os.Getenv("USERS_TABLE")
 	if tableName == "" {
-		return "auth-app-users"
+		panic("USERS_TABLE environment variable is not set")
 	}
 	return tableName
 }

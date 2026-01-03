@@ -129,7 +129,7 @@ export class AuthAppStack extends cdk.Stack {
       bucketName: `${environment}-auth-app-frontend-${this.account}`,
       publicReadAccess: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      websiteErrorDocument: "index.html", // SPA routing
+      websiteErrorDocument: "index.html",
       websiteIndexDocument: "index.html",
     });
 
