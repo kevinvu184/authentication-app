@@ -73,11 +73,12 @@ const SignUp: React.FC = () => {
             onChange={handleChange}
             required
             style={{
-              width: "100%",
-              padding: "0.5rem",
-              marginTop: "0.25rem",
               border: "1px solid #ccc",
               borderRadius: "4px",
+              boxSizing: "border-box",
+              marginTop: "0.25rem",
+              padding: "0.5rem",
+              width: "100%",
             }}
           />
         </div>
@@ -92,11 +93,12 @@ const SignUp: React.FC = () => {
             onChange={handleChange}
             required
             style={{
-              width: "100%",
-              padding: "0.5rem",
-              marginTop: "0.25rem",
               border: "1px solid #ccc",
               borderRadius: "4px",
+              boxSizing: "border-box",
+              marginTop: "0.25rem",
+              padding: "0.5rem",
+              width: "100%",
             }}
           />
         </div>
@@ -111,11 +113,12 @@ const SignUp: React.FC = () => {
             onChange={handleChange}
             required
             style={{
-              width: "100%",
-              padding: "0.5rem",
-              marginTop: "0.25rem",
               border: "1px solid #ccc",
               borderRadius: "4px",
+              boxSizing: "border-box",
+              marginTop: "0.25rem",
+              padding: "0.5rem",
+              width: "100%",
             }}
           />
         </div>
@@ -131,11 +134,12 @@ const SignUp: React.FC = () => {
             required
             minLength={8}
             style={{
-              width: "100%",
-              padding: "0.5rem",
-              marginTop: "0.25rem",
               border: "1px solid #ccc",
               borderRadius: "4px",
+              boxSizing: "border-box",
+              marginTop: "0.25rem",
+              padding: "0.5rem",
+              width: "100%",
             }}
           />
           <small style={{ color: "#666", fontSize: "0.875rem" }}>
@@ -147,14 +151,15 @@ const SignUp: React.FC = () => {
           type="submit"
           disabled={isLoading}
           style={{
-            width: "100%",
-            padding: "0.75rem",
             backgroundColor: isLoading ? "#ccc" : "#007bff",
-            color: "white",
             border: "none",
             borderRadius: "4px",
-            fontSize: "1rem",
+            boxSizing: "border-box",
+            color: "white",
             cursor: isLoading ? "not-allowed" : "pointer",
+            fontSize: "1rem",
+            padding: "0.75rem",
+            width: "100%",
           }}
         >
           {isLoading ? "Creating Account..." : "Sign Up"}
