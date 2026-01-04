@@ -2,6 +2,8 @@
 
 A simple authentication application with a serverless backend and a React frontend.
 
+https://github.com/user-attachments/assets/deaf5632-a8fc-478d-9845-d6b8f89afad0
+
 ## Architecture
 
 - **Frontend**: React + TypeScript single-page application (SPA) deployed to Amazon S3 and served via CloudFront
