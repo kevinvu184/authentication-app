@@ -24,6 +24,9 @@ https://github.com/user-attachments/assets/deaf5632-a8fc-478d-9845-d6b8f89afad0
    npx cdk deploy --context environment=<env>
    ```
 
+4. Create `.env` in `./frontend` directory with `REACT_APP_API_URL`
+5. Re-deploy again!
+
 ## Report
 
 ### Setup and Architectural Choices
