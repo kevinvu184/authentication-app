@@ -2,6 +2,9 @@
 
 A simple authentication application with a serverless backend and a React frontend.
 
+✅ ✅ ✅ Demo: https://d216pkagaamp8.cloudfront.net/ ✅ ✅ ✅ 
+⚠️ ⚠️ ⚠️ DO NOT USE YOUR REAL PASSWORD ⚠️ ⚠️ ⚠️
+
 https://github.com/user-attachments/assets/deaf5632-a8fc-478d-9845-d6b8f89afad0
 
 ## Architecture
